@@ -7,7 +7,6 @@
     <title>Chikii Game Store - MLBB</title>
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <link rel="stylesheet" href="style.css">
@@ -16,10 +15,7 @@
 
 <header>
     <div class="logo" onclick="goTo('home')">Chikii<span class="spin-a">Λ</span> STORE</div>
-    <div class="user-nav" style="display: flex; align-items: center; gap: 15px;">
-        <button id="web-login-btn" class="btn-login-top" onclick="document.getElementById('auth-modal').style.display='flex'">LOGIN</button>
-    </div>
-</header>
+    </header>
 
 <div class="container" id="content-area">
 
@@ -83,7 +79,9 @@
         </div>
     </div>
 
-</div> <div id="checkout-bar" style="display: none;">
+</div> 
+
+<div id="checkout-bar" style="display: none;">
     <div class="checkout-close-bar">
         <button class="btn-close-checkout" onclick="closeCheckout()"><i class="fas fa-times"></i> Close</button>
     </div>
@@ -101,48 +99,6 @@
             <div id="selected-price" style="font-size:16px; font-weight:900; color:#fff;">0 Ks</div>
         </div>
         <button class="btn-buy-now" onclick="initiateBuy()">BUY NOW</button>
-    </div>
-</div>
-
-<div class="modal-overlay" id="auth-modal" style="display:none;" onclick="if(event.target===this) this.style.display='none'">
-    <div class="modal-card">
-        <i class="fas fa-times close-modal" onclick="this.parentElement.parentElement.style.display='none'"></i>
-        
-        <div id="google-login-section" style="margin-bottom: 20px;">
-            <h3 style="color:#fff; font-size: 14px; margin-bottom: 10px;">Login with Google</h3>
-            <div style="display: flex; justify-content: center;">
-                <div id="g_id_onload" data-client_id="YOUR_GOOGLE_CLIENT_ID" data-callback="handleGoogleLogin"></div>
-                <div class="g_id_signin" data-type="standard"></div>
-            </div>
-        </div>
-
-        <div style="margin:15px 0; border-top:1px solid rgba(255,255,255,0.1); position:relative;">
-            <span style="position:absolute; top:-8px; left:50%; transform:translateX(-50%); background:#0f172a; padding:0 10px; font-size:10px; color:#666;">OR</span>
-        </div>
-
-        <div id="login-section">
-            <h2 style="color:#fff; margin-bottom: 5px; font-size: 18px;">Email Login</h2>
-            <div class="input-group"><input type="email" id="log-email" placeholder="Email Address"></div>
-            <div class="input-group"><input type="password" id="log-pwd" placeholder="Password"></div>
-            <button class="btn-main" id="btn-login-exec" onclick="doEmailLogin()">Login Now</button>
-            <div style="font-size:12px; margin-top:15px; color:#888;">New user? <span style="color:var(--accent); cursor:pointer;" onclick="toggleAuth('reg')">Create Account</span></div>
-        </div>
-
-        <div id="register-section" style="display:none;">
-            <h2 style="color:#fff; margin-bottom: 5px; font-size: 18px;">Register</h2>
-            <div class="input-group"><input type="text" id="reg-user" placeholder="Username"></div>
-            <div class="input-group"><input type="email" id="reg-email" placeholder="Email Address"></div>
-            <div class="input-group"><input type="password" id="reg-pwd" placeholder="Password"></div>
-            <button class="btn-main" id="btn-reg-exec" onclick="doEmailRegister()">Sign Up</button>
-            <div style="font-size:12px; margin-top:15px; color:#888;">Back to <span style="color:var(--accent); cursor:pointer;" onclick="toggleAuth('log')">Login</span></div>
-        </div>
-
-        <div style="margin:20px 0; border-top:1px solid rgba(255,255,255,0.1);"></div>
-        
-        <div id="telegram-login-box" style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
-            <span style="font-size: 12px; color: #888;">Login with Telegram</span>
-            <script async src="https://telegram.org/js/telegram-widget.js?22" data-telegram-login="ffymoodonstore_bot" data-size="large" data-onauth="onTelegramAuth(user)"></script>
-        </div>
     </div>
 </div>
 
@@ -174,10 +130,6 @@
     <div class="nav-tab" onclick="goTo('history')">
         <i class="fas fa-history" style="font-size: 20px;"></i>
         <span style="font-size: 10px; margin-top: 5px;">History</span>
-    </div>
-    <div class="nav-tab" onclick="document.getElementById('auth-modal').style.display='flex'">
-        <i class="fas fa-user" style="font-size: 20px;"></i>
-        <span style="font-size: 10px; margin-top: 5px;">Login</span>
     </div>
 </nav>
 

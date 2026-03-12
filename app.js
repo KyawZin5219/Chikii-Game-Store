@@ -1,15 +1,13 @@
 // --- API Configurations ---
-const API = 'https://ffymoodon.store'; 
+const API = 'http://127.0.0.1:8000'; // မိမိ Local (သို့) Server Backend လမ်းကြောင်း
 const KEY = 'Ak9#Xm2$Pv5@Lz8R';
 
-// --- App Variables ---
-let currentUserToken = localStorage.getItem('web_token');
-let currentUserId = localStorage.getItem('web_user_id');
+// Login ဖြုတ်လိုက်သဖြင့် ယာယီ User ID သုံးပါမည် (Mini App သုံးပါက Telegram User ID ပြောင်းထည့်နိုင်ပါသည်)
+let currentUserId = 'guest_user'; 
 let selectedSku = null, basePrice = 0, currentCode = 'mlbb_global', verifiedIGN = '', currentQty = 1;
 
 // --- Initialize App ---
 document.addEventListener("DOMContentLoaded", () => {
-    checkAuthState();
     goTo('home');
 });
 
@@ -18,60 +16,19 @@ function goTo(page) {
     document.querySelectorAll('.view-section').forEach(el => el.style.display = 'none');
     document.getElementById('checkout-bar').style.display = 'none';
     
+    document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+    
     if (page === 'history') {
         document.getElementById('history-view').style.display = 'block';
         openWebHistory();
+        document.querySelectorAll('.nav-tab')[1].classList.add('active'); // History tab active
     } else if (page === 'product') {
         document.getElementById('product-view').style.display = 'block';
     } else {
         document.getElementById('home-view').style.display = 'block';
+        document.querySelectorAll('.nav-tab')[0].classList.add('active'); // Home tab active
     }
-}
-
-// --- Auth (Login / Register) ---
-function checkAuthState() {
-    if (currentUserToken && currentUserId) {
-        document.getElementById('web-login-btn').innerText = "LOGOUT";
-        document.getElementById('web-login-btn').onclick = logout;
-    } else {
-        document.getElementById('web-login-btn').innerText = "LOGIN";
-        document.getElementById('web-login-btn').onclick = () => { document.getElementById('auth-modal').style.display='flex'; };
-    }
-}
-
-function toggleAuth(mode) {
-    document.getElementById('login-section').style.display = mode === 'log' ? 'block' : 'none';
-    document.getElementById('register-section').style.display = mode === 'reg' ? 'block' : 'none';
-}
-
-function doEmailLogin() {
-    const email = document.getElementById('log-email').value;
-    const password = document.getElementById('log-pwd').value;
-    if(!email || !password) return Swal.fire('Oops!', 'အချက်အလက်များ ပြည့်စုံစွာဖြည့်ပါ', 'warning');
-    
-    fetch(`${API}/api/app/login`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json', 'X-API-Key': KEY },
-        body: JSON.stringify({ email, password })
-    }).then(r => r.json()).then(res => {
-        if(res.success) saveAuthData(res.access_token, res.user.user_id);
-        else Swal.fire('Error', 'Email သို့မဟုတ် Password မှားနေပါသည်', 'error');
-    });
-}
-
-function saveAuthData(token, userId) {
-    localStorage.setItem('web_token', token);
-    localStorage.setItem('web_user_id', userId);
-    currentUserToken = token; currentUserId = userId;
-    document.getElementById('auth-modal').style.display = 'none';
-    Swal.fire('Success', 'Login ဝင်ရောက်မှု အောင်မြင်ပါသည်', 'success');
-    checkAuthState();
-}
-
-function logout() {
-    localStorage.clear();
-    currentUserToken = null; currentUserId = null;
-    checkAuthState();
-    goTo('home');
+    window.scrollTo(0,0);
 }
 
 // --- Game Logic (MLBB Only) ---
@@ -106,6 +63,8 @@ function loadProducts(code) {
         list.innerHTML = "";
         if(!data.items || !data.items.length) { list.innerHTML = `<div style="text-align:center;">No items.</div>`; return; }
         renderCategory("🎁 Top Up Items", data.items, list);
+    }).catch(() => {
+        list.innerHTML = `<div style="text-align:center; color:#ff3333;">Error loading products.</div>`;
     });
 }
 
@@ -153,6 +112,8 @@ function handleCheckID() {
         } else { 
             disp.innerHTML = `❌ Not Found`; verifiedIGN = ''; 
         }
+    }).catch(() => {
+        disp.innerHTML = `❌ Error`;
     });
 }
 
@@ -176,7 +137,6 @@ function updatePriceUI() {
 function closeCheckout() { document.getElementById('checkout-bar').style.display = 'none'; }
 
 function initiateBuy() {
-    if(!currentUserToken) return document.getElementById('auth-modal').style.display='flex';
     if(!verifiedIGN) return Swal.fire('Wait!', 'ကျေးဇူးပြု၍ VERIFY ID အရင်နှိပ်ပေးပါ', 'warning');
     
     const idVal = document.getElementById('p-id').value;
@@ -184,9 +144,10 @@ function initiateBuy() {
 
     Swal.fire({title: 'Processing...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
     
+    // Authorization (Token) ဖြုတ်ထားပါသည်
     fetch(`${API}/api/buy`, { 
         method: 'POST', 
-        headers: {'Content-Type': 'application/json', 'X-API-Key': KEY, 'Authorization': `Bearer ${currentUserToken}`}, 
+        headers: {'Content-Type': 'application/json', 'X-API-Key': KEY}, 
         body: JSON.stringify({ 
             user_id: currentUserId, sku: selectedSku, game_code: currentCode, 
             player_id: idVal, zone_id: zoneVal, ign: verifiedIGN, quantity: currentQty 
@@ -199,22 +160,23 @@ function initiateBuy() {
         } else { 
             Swal.fire('Error', res.message || 'ဝယ်ယူမှု မအောင်မြင်ပါ', 'error'); 
         }
+    }).catch(() => {
+        Swal.fire('Error', 'Connection Error!', 'error'); 
     });
 }
 
 // --- Order History ---
 function openWebHistory() {
-    if(!currentUserToken) return document.getElementById('auth-modal').style.display='flex';
-    
     const list = document.getElementById('full-history-list');
     list.innerHTML = 'Loading history...';
 
+    // Authorization (Token) ဖြုတ်ထားပါသည်
     fetch(`${API}/api/history/${currentUserId}`, { 
-        headers: { 'X-API-Key': KEY, 'Authorization': `Bearer ${currentUserToken}` } 
+        headers: { 'X-API-Key': KEY } 
     })
     .then(r => r.json()).then(data => {
         if(!data.history || data.history.length === 0) {
-            list.innerHTML = 'မှတ်တမ်းမရှိသေးပါ။'; return;
+            list.innerHTML = '<div style="text-align:center; color:#888; padding:20px;">မှတ်တမ်းမရှိသေးပါ။</div>'; return;
         }
         
         let html = "";
@@ -231,5 +193,7 @@ function openWebHistory() {
             </div>`;
         });
         list.innerHTML = html;
+    }).catch(() => {
+        list.innerHTML = '<div style="text-align:center; color:#ff3333; padding:20px;">မှတ်တမ်းဆွဲယူ၍ မရပါ။</div>';
     });
 }
